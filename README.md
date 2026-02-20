@@ -13,6 +13,9 @@ A premium, dark-themed food ordering frontend for mall food courts. Browse resta
 ### Mobile
 <img src="demo/mobile-demo.webp?v=2" width="300" alt="Mobile demo - responsive layout" />
 
+### Seamless Cart Interactions
+<img src="demo/cart-updates.webp" width="800" alt="Cart sync demo" />
+
 ## Features
 
 - 🏬 **Mall Selection** — Choose your mall to see available restaurants
