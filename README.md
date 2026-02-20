@@ -8,10 +8,10 @@ A premium, dark-themed food ordering frontend for mall food courts. Browse resta
 ## Demo
 
 ### Desktop
-<img src="demo/desktop-demo.webp" width="800" alt="Desktop demo - full ordering flow" />
+<img src="demo/desktop-demo.webp?v=2" width="800" alt="Desktop demo - full ordering flow" />
 
 ### Mobile
-<img src="demo/mobile-demo.webp" width="300" alt="Mobile demo - responsive layout" />
+<img src="demo/mobile-demo.webp?v=2" width="300" alt="Mobile demo - responsive layout" />
 
 ## Features
 
