@@ -1,0 +1,185 @@
+.page {
+    min-height: calc(100vh - var(--header-h));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--sp-8) var(--sp-6);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Gradient orb backgrounds */
+.page::before,
+.page::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.page::before {
+    width: 500px;
+    height: 500px;
+    background: var(--accent);
+    top: -200px;
+    right: -100px;
+}
+
+.page::after {
+    width: 400px;
+    height: 400px;
+    background: #8B5CF6;
+    bottom: -150px;
+    left: -100px;
+}
+
+.hero {
+    text-align: center;
+    max-width: 700px;
+    margin-bottom: var(--sp-12);
+    animation: fadeIn 0.6s var(--ease) both;
+    position: relative;
+    z-index: 1;
+}
+
+.tagline {
+    display: inline-block;
+    padding: var(--sp-2) var(--sp-4);
+    background: var(--accent-subtle);
+    color: var(--accent);
+    border-radius: var(--r-full);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--sp-5);
+    border: 1px solid rgba(255, 107, 53, 0.15);
+}
+
+.title {
+    font-family: var(--font-heading);
+    font-size: clamp(32px, 6vw, 56px);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: var(--sp-5);
+    letter-spacing: -1px;
+}
+
+.titleAccent {
+    background: linear-gradient(135deg, var(--accent), #FFB088);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.mallGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--sp-6);
+    width: 100%;
+    max-width: 700px;
+    position: relative;
+    z-index: 1;
+}
+
+.mallCard {
+    position: relative;
+    background: var(--bg-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: var(--r-xl);
+    padding: var(--sp-8);
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-4);
+    transition: all 0.3s var(--ease);
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.mallCard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.06), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.mallCard:hover {
+    border-color: rgba(255, 107, 53, 0.3);
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(255, 107, 53, 0.12), var(--shadow-lg);
+}
+
+.mallCard:hover::before {
+    opacity: 1;
+}
+
+.mallIcon {
+    font-size: 48px;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--r-lg);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+}
+
+.mallName {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.mallArrow {
+    color: var(--text-muted);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    transition: color 0.2s;
+}
+
+.mallCard:hover .mallArrow {
+    color: var(--accent);
+}
+
+.loadingGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--sp-6);
+    width: 100%;
+    max-width: 700px;
+}
+
+.skeletonCard {
+    height: 200px;
+    border-radius: var(--r-xl);
+}
+
+@media (max-width: 640px) {
+    .mallGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .mallCard {
+        padding: var(--sp-6);
+    }
+}
