@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { getMenu } from '@/lib/api';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
@@ -12,8 +13,12 @@ export default function MenuPage({ mallId, restaurantId }) {
     const [loading, setLoading] = useState(true);
     const [vegOnly, setVegOnly] = useState(false);
     const [addingId, setAddingId] = useState(null);
-    const { setMallId, addItem, items: cartItems } = useCart();
+    const { setMallId, addItem, updateItem, removeItem, items: cartItems, summary, setOpen: setCartOpen } = useCart();
+    const searchParams = useSearchParams();
+    const initialName = searchParams.get('name');
     const toast = useToast();
+
+    const itemCount = cartItems.reduce((s, i) => s + (i.quantity || 0), 0);
 
     useEffect(() => {
         setMallId(mallId);
@@ -40,7 +45,6 @@ export default function MenuPage({ mallId, restaurantId }) {
         try {
             setAddingId(menuItemId);
             await addItem(menuItemId, 1);
-            toast.success('Added to cart! 🛒');
         } catch {
             toast.error('Failed to add item');
         } finally {
@@ -52,7 +56,7 @@ export default function MenuPage({ mallId, restaurantId }) {
         cartItems.some((ci) => ci.menuItemId === menuItemId);
 
     return (
-        <div className={styles.page}>
+        <div className={`${styles.page} ${itemCount > 0 ? styles.hasCart : ''}`}>
             <div className={`container ${styles.content}`}>
                 {/* Breadcrumb */}
                 <nav className={styles.breadcrumb}>
@@ -74,7 +78,7 @@ export default function MenuPage({ mallId, restaurantId }) {
                         <div className={styles.headerIcon}>🍽️</div>
                         <div>
                             <h1 className={styles.restaurantName}>
-                                {restaurant?.name || 'Loading...'}
+                                {restaurant?.name || initialName || 'Loading...'}
                             </h1>
                             {restaurant?.isActive && (
                                 <span className={styles.statusBadge}>● Open Now</span>
@@ -137,23 +141,49 @@ export default function MenuPage({ mallId, restaurantId }) {
                                             </div>
 
                                             <div className={styles.itemRight}>
-                                                {isInCart(item.id) ? (
-                                                    <span className={styles.inCartBadge}>✓ In Cart</span>
-                                                ) : (
-                                                    <button
-                                                        className={`btn btn-primary btn-sm ${styles.addBtn}`}
-                                                        onClick={() => handleAdd(item.id)}
-                                                        disabled={!item.isAvailable || addingId === item.id}
-                                                    >
-                                                        {addingId === item.id ? (
-                                                            <span className={styles.spinner} />
-                                                        ) : !item.isAvailable ? (
-                                                            'Unavailable'
-                                                        ) : (
-                                                            '+ Add'
-                                                        )}
-                                                    </button>
-                                                )}
+                                                {(() => {
+                                                    const cartItem = cartItems.find((ci) => ci.menuItemId === item.id);
+                                                    if (cartItem) {
+                                                        return (
+                                                            <div className="qty-stepper" style={{ '--stepper-bg': 'var(--success-bg)', '--stepper-color': 'var(--success)' }}>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        cartItem.quantity <= 1
+                                                                            ? removeItem(cartItem.cartItemId)
+                                                                            : updateItem(cartItem.cartItemId, cartItem.quantity - 1)
+                                                                    }
+                                                                    disabled={cartItem.isOptimistic}
+                                                                >
+                                                                    {cartItem.quantity <= 1 ? '🗑' : '−'}
+                                                                </button>
+                                                                <span style={{ minWidth: '20px', textAlign: 'center', fontSize: '13px', fontWeight: '600' }}>
+                                                                    {cartItem.quantity}
+                                                                </span>
+                                                                <button
+                                                                    onClick={() => updateItem(cartItem.cartItemId, cartItem.quantity + 1)}
+                                                                    disabled={cartItem.isOptimistic}
+                                                                >
+                                                                    +
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return (
+                                                        <button
+                                                            className={`btn btn-primary btn-sm ${styles.addBtn}`}
+                                                            onClick={() => handleAdd(item.id)}
+                                                            disabled={!item.isAvailable || addingId === item.id}
+                                                        >
+                                                            {addingId === item.id ? (
+                                                                <span className={styles.spinner} />
+                                                            ) : !item.isAvailable ? (
+                                                                'Unavailable'
+                                                            ) : (
+                                                                '+ Add'
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })()}
                                             </div>
                                         </div>
                                     ))}
@@ -163,6 +193,26 @@ export default function MenuPage({ mallId, restaurantId }) {
                     </div>
                 )}
             </div>
+
+            {itemCount > 0 && (
+                <div className={styles.floatingCart} onClick={() => setCartOpen(true)}>
+                    <div className={styles.floatingCartLeft}>
+                        <span className={styles.floatingCartTitle}>
+                            {itemCount} item{itemCount !== 1 ? 's' : ''} added
+                        </span>
+                        <span className={styles.floatingCartSub}>
+                            Extra charges may apply
+                        </span>
+                    </div>
+                    <div className={styles.floatingCartRight}>
+                        <span>View Cart</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                        </svg>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

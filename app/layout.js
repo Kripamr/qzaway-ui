@@ -1,9 +1,14 @@
 import './globals.css';
+import { Inter, Outfit } from 'next/font/google';
 import { Providers } from '@/components/Providers';
 import Header from '@/components/Header';
 import CartPanel from '@/components/CartPanel';
 import OrdersPanel from '@/components/OrdersPanel';
 import ToastContainer from '@/components/ToastContainer';
+import ErrorBoundary from '@/components/ErrorBoundary';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-body', weight: ['400', '500', '600', '700'] });
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-heading', weight: ['500', '600', '700', '800'] });
 
 export const metadata = {
   title: 'Qzaway — Mall Food Court Ordering',
@@ -12,23 +17,17 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
       <body>
-        <Providers>
-          <Header />
-          <main style={{ paddingTop: 'var(--header-h)' }}>{children}</main>
-          <CartPanel />
-          <OrdersPanel />
-          <ToastContainer />
-        </Providers>
+        <ErrorBoundary>
+          <Providers>
+            <Header />
+            <main style={{ paddingTop: 'var(--header-h)' }}>{children}</main>
+            <CartPanel />
+            <OrdersPanel />
+            <ToastContainer />
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
 'use client';
+import { useRef } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
 import styles from './CartPanel.module.css';
@@ -13,8 +14,20 @@ function calcFinancials(subtotal) {
 }
 
 export default function CartPanel() {
-    const { items, summary, loading, open, setOpen, updateItem, removeItem, placeOrder } = useCart();
+    const { items, summary, loading, isSyncing, open, setOpen, updateItem, removeItem, placeOrder } = useCart();
     const toast = useToast();
+    const touchStartX = useRef(null);
+
+    const handleTouchStart = (e) => {
+        touchStartX.current = e.targetTouches[0].clientX;
+    };
+
+    const handleTouchEnd = (e) => {
+        if (touchStartX.current === null) return;
+        const diff = e.changedTouches[0].clientX - touchStartX.current;
+        if (diff > 80) setOpen(false);
+        touchStartX.current = null;
+    };
 
     const subtotal = summary?.subtotal ?? items.reduce((s, i) => s + i.price * i.quantity, 0);
     const { foodGst, platformFee, platformGst, total } = calcFinancials(subtotal);
@@ -31,7 +44,11 @@ export default function CartPanel() {
     return (
         <>
             <div className={`overlay ${open ? 'active' : ''}`} onClick={() => setOpen(false)} />
-            <aside className={`${styles.panel} ${open ? styles.open : ''}`}>
+            <aside
+                className={`${styles.panel} ${open ? styles.open : ''}`}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+            >
                 <div className={styles.header}>
                     <h2 className={styles.title}>
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -75,14 +92,14 @@ export default function CartPanel() {
                                                         ? removeItem(item.cartItemId)
                                                         : updateItem(item.cartItemId, item.quantity - 1)
                                                 }
-                                                disabled={loading}
+                                                disabled={loading || item.isOptimistic}
                                             >
                                                 {item.quantity <= 1 ? '🗑' : '−'}
                                             </button>
                                             <span>{item.quantity}</span>
                                             <button
                                                 onClick={() => updateItem(item.cartItemId, item.quantity + 1)}
-                                                disabled={loading}
+                                                disabled={loading || item.isOptimistic}
                                             >
                                                 +
                                             </button>
@@ -93,7 +110,7 @@ export default function CartPanel() {
                             ))}
                         </div>
 
-                        <div className={styles.summary}>
+                        <div className={styles.summary} style={isSyncing ? { filter: 'blur(3px)', opacity: 0.6, transition: 'all 0.2s', pointerEvents: 'none' } : { transition: 'all 0.2s' }}>
                             <div className={styles.summaryRow}>
                                 <span>Subtotal</span>
                                 <span>₹{subtotal.toFixed(2)}</span>

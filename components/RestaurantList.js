@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { getRestaurants, searchFood } from '@/lib/api';
 import { useCart } from '@/context/CartContext';
@@ -12,7 +12,9 @@ export default function RestaurantList({ mallId }) {
     const [searchResults, setSearchResults] = useState(null);
     const [searching, setSearching] = useState(false);
     const [vegOnly, setVegOnly] = useState(false);
-    const { setMallId } = useCart();
+    const [addingId, setAddingId] = useState(null);
+    const { setMallId, addItem, items: cartItems, updateItem, removeItem } = useCart();
+    const searchAbortController = useRef(null);
 
     useEffect(() => {
         setMallId(mallId);
@@ -30,16 +32,26 @@ export default function RestaurantList({ mallId }) {
             setSearchResults(null);
             return;
         }
+
+        if (searchAbortController.current) {
+            searchAbortController.current.abort();
+        }
+        searchAbortController.current = new AbortController();
+
         try {
             setSearching(true);
             const data = await searchFood(mallId, searchQuery.trim(), {
                 veg: vegOnly ? 'true' : '',
+                signal: searchAbortController.current.signal,
             });
             setSearchResults(data.data || []);
-        } catch {
+        } catch (err) {
+            if (err.name === 'AbortError') return;
             setSearchResults([]);
         } finally {
-            setSearching(false);
+            if (!searchAbortController.current.signal.aborted) {
+                setSearching(false);
+            }
         }
     }, [mallId, searchQuery, vegOnly]);
 
@@ -119,11 +131,57 @@ export default function RestaurantList({ mallId }) {
                                             <span className={styles.searchItemName}>{item.name}</span>
                                         </div>
                                         {item.restaurant && (
-                                            <span className={styles.searchRestaurant}>
+                                            <Link href={`/mall/${mallId}/restaurant/${item.restaurant.id}?name=${encodeURIComponent(item.restaurant.name)}`} className={styles.searchRestaurant}>
                                                 at {item.restaurant.name}
-                                            </span>
+                                            </Link>
                                         )}
-                                        <span className="price price-sm">₹{item.price}</span>
+                                        <div className={styles.searchCardBottom}>
+                                            <span className="price price-sm">₹{item.price}</span>
+                                            {(() => {
+                                                const cartItem = cartItems.find((ci) => ci.menuItemId === item.id);
+                                                if (cartItem) {
+                                                    return (
+                                                        <div className="qty-stepper" style={{ '--stepper-bg': 'var(--success-bg)', '--stepper-color': 'var(--success)' }}>
+                                                            <button
+                                                                onClick={() =>
+                                                                    cartItem.quantity <= 1
+                                                                        ? removeItem(cartItem.cartItemId)
+                                                                        : updateItem(cartItem.cartItemId, cartItem.quantity - 1)
+                                                                }
+                                                                disabled={cartItem.isOptimistic}
+                                                            >
+                                                                {cartItem.quantity <= 1 ? '🗑' : '−'}
+                                                            </button>
+                                                            <span style={{ minWidth: '20px', textAlign: 'center', fontSize: '13px', fontWeight: '600' }}>
+                                                                {cartItem.quantity}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => updateItem(cartItem.cartItemId, cartItem.quantity + 1)}
+                                                                disabled={cartItem.isOptimistic}
+                                                            >
+                                                                +
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                }
+                                                return (
+                                                    <button
+                                                        className={`btn btn-primary btn-sm ${styles.addBtn}`}
+                                                        onClick={async () => {
+                                                            try {
+                                                                setAddingId(item.id);
+                                                                await addItem(item.id, 1);
+                                                            } finally {
+                                                                setAddingId(null);
+                                                            }
+                                                        }}
+                                                        disabled={!item.isAvailable || addingId === item.id}
+                                                    >
+                                                        {addingId === item.id ? <span className={styles.spinner} /> : '+ Add'}
+                                                    </button>
+                                                );
+                                            })()}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -153,7 +211,7 @@ export default function RestaurantList({ mallId }) {
                                 {restaurants.map((r, idx) => (
                                     <Link
                                         key={r.id}
-                                        href={`/mall/${mallId}/restaurant/${r.id}`}
+                                        href={`/mall/${mallId}/restaurant/${r.id}?name=${encodeURIComponent(r.name)}`}
                                         className={`${styles.card} fade-in stagger-${Math.min(idx + 1, 6)}`}
                                     >
                                         <div className={styles.cardIcon}>
@@ -161,7 +219,14 @@ export default function RestaurantList({ mallId }) {
                                         </div>
                                         <div className={styles.cardBody}>
                                             <h3 className={styles.cardName}>{r.name}</h3>
-                                            <span className={styles.cardMeta}>View Menu →</span>
+                                            <div className={styles.cardStatusMeta}>
+                                                {typeof r.isActive === 'boolean' && (
+                                                    <span className={`${styles.statusDot} ${r.isActive ? styles.active : styles.inactive}`} title={r.isActive ? 'Open' : 'Closed'} />
+                                                )}
+                                                <span className={styles.cardMeta}>
+                                                    {r.menuItemCount ? `${r.menuItemCount} items • ` : ''}View Menu →
+                                                </span>
+                                            </div>
                                         </div>
                                     </Link>
                                 ))}

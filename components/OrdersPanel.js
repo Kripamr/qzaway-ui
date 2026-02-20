@@ -1,4 +1,5 @@
 'use client';
+import { useRef } from 'react';
 import { useOrders } from '@/context/OrdersContext';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
@@ -9,6 +10,18 @@ export default function OrdersPanel() {
     const { orders, loading, open, meta, setOpen, fetchOrders } = useOrders();
     const { fetchCart, mallId } = useCart();
     const toast = useToast();
+    const touchStartX = useRef(null);
+
+    const handleTouchStart = (e) => {
+        touchStartX.current = e.targetTouches[0].clientX;
+    };
+
+    const handleTouchEnd = (e) => {
+        if (touchStartX.current === null) return;
+        const diff = e.changedTouches[0].clientX - touchStartX.current;
+        if (diff > 80) setOpen(false);
+        touchStartX.current = null;
+    };
 
     const handleReorder = async (orderId) => {
         try {
@@ -23,7 +36,11 @@ export default function OrdersPanel() {
     return (
         <>
             <div className={`overlay ${open ? 'active' : ''}`} onClick={() => setOpen(false)} />
-            <aside className={`${styles.panel} ${open ? styles.open : ''}`}>
+            <aside
+                className={`${styles.panel} ${open ? styles.open : ''}`}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+            >
                 <div className={styles.header}>
                     <h2 className={styles.title}>
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

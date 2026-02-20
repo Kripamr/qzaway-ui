@@ -3,6 +3,11 @@
     padding: var(--sp-8) 0;
 }
 
+.page.hasCart {
+    padding-bottom: 96px;
+    /* Space for the floating cart */
+}
+
 .content {
     display: flex;
     flex-direction: column;
@@ -248,6 +253,87 @@
     padding: var(--sp-2) var(--sp-3);
     border-radius: var(--r-sm);
     border: 1px solid rgba(52, 211, 153, 0.25);
+    animation: addPop 0.4s var(--ease) both;
+}
+
+@keyframes addPop {
+    0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 rgba(52, 211, 153, 0);
+    }
+
+    50% {
+        transform: scale(1.15);
+        box-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(52, 211, 153, 0);
+    }
+}
+
+/* ── Floating Cart Bar ────────────────────────── */
+.floatingCart {
+    position: fixed;
+    bottom: var(--sp-6);
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - var(--sp-12));
+    max-width: 480px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: var(--r-xl);
+    padding: var(--sp-4) var(--sp-6);
+    display: none;
+    /* Only show on mobile */
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow-lg), 0 0 32px var(--accent-glow);
+    z-index: 100;
+    cursor: pointer;
+    animation: slideUpFade 0.4s var(--ease) both;
+    transition: all 0.2s var(--ease);
+}
+
+.floatingCart:hover {
+    background: var(--accent-hover);
+    transform: translateX(-50%) translateY(-2px);
+}
+
+.floatingCartLeft {
+    display: flex;
+    flex-direction: column;
+}
+
+.floatingCartTitle {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.floatingCartSub {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.floatingCartRight {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-weight: 700;
+    font-size: 16px;
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(120%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
 /* ── Spinner ──────────────────────────────────── */
@@ -295,5 +381,11 @@
 
     .itemRight {
         align-self: flex-end;
+    }
+
+    .floatingCart {
+        display: flex;
+        bottom: var(--sp-4);
+        width: calc(100% - var(--sp-8));
     }
 }

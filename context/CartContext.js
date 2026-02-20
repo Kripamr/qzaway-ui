@@ -3,6 +3,26 @@ import { createContext, useContext, useState, useCallback, useEffect, useRef } f
 import * as api from '@/lib/api';
 import { getUserId } from '@/lib/userId';
 
+const preserveOrder = (prev, newItems, tempId = null) => {
+    if (!prev || prev.length === 0) return newItems || [];
+    const map = new Map((newItems || []).map(i => [i.cartItemId, i]));
+    const result = [];
+    for (const p of prev) {
+        if (p.cartItemId === tempId) {
+            const added = newItems.find(i => i.menuItemId === p.menuItemId && !prev.some(old => old.cartItemId === i.cartItemId));
+            if (added) {
+                result.push(added);
+                map.delete(added.cartItemId);
+            }
+        } else if (map.has(p.cartItemId)) {
+            result.push(map.get(p.cartItemId));
+            map.delete(p.cartItemId);
+        }
+    }
+    for (const item of map.values()) result.push(item);
+    return result;
+};
+
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
@@ -10,22 +30,24 @@ export function CartProvider({ children }) {
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
     const [mallId, setMallId] = useState(null);
     const prevMallId = useRef(null);
+    const updateTimeouts = useRef({});
 
-    const fetchCart = useCallback(async (mId) => {
+    const fetchCart = useCallback(async (mId, silent = false) => {
         const userId = getUserId();
         if (!userId || !mId) return;
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
             const data = await api.getCart(userId, mId);
-            setItems(data.items || []);
+            setItems(prev => preserveOrder(prev, data.items));
             setSummary(data.summary || null);
         } catch {
             setItems([]);
             setSummary(null);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     }, []);
 
@@ -39,38 +61,86 @@ export function CartProvider({ children }) {
     const addItem = useCallback(async (menuItemId, quantity = 1) => {
         const userId = getUserId();
         if (!userId || !mallId) return;
+
+        const tempId = 'temp-' + Date.now();
+        setItems(prev => [...prev, { cartItemId: tempId, menuItemId, quantity, price: 0, isOptimistic: true }]);
+
         try {
-            setLoading(true);
-            await api.addToCart({ userId, mallId, menuItemId, quantity });
-            await fetchCart(mallId);
+            const data = await api.addToCart({ userId, mallId, menuItemId, quantity });
+            if (data && data.items) {
+                setItems(prev => preserveOrder(prev, data.items, tempId));
+                setSummary(data.summary);
+            } else {
+                fetchCart(mallId, true);
+            }
         } catch (err) {
+            setItems(prev => prev.filter(i => i.cartItemId !== tempId));
             throw err;
-        } finally {
-            setLoading(false);
         }
     }, [mallId, fetchCart]);
 
-    const updateItem = useCallback(async (cartItemId, quantity) => {
-        try {
-            setLoading(true);
-            await api.updateCartItem(cartItemId, { quantity });
-            await fetchCart(mallId);
-        } catch (err) {
-            throw err;
-        } finally {
-            setLoading(false);
+    const updateItem = useCallback((cartItemId, quantity) => {
+        if (String(cartItemId).startsWith('temp-')) {
+            console.warn('Cannot update an optimistic item before it syncs.');
+            return;
         }
+
+        setItems(prev => prev.map(item => {
+            if (item.cartItemId === cartItemId) {
+                return { ...item, quantity, lineTotal: item.price * quantity };
+            }
+            return item;
+        }));
+
+        if (updateTimeouts.current[cartItemId]) {
+            clearTimeout(updateTimeouts.current[cartItemId]);
+        }
+
+        setIsSyncing(true);
+        updateTimeouts.current[cartItemId] = setTimeout(async () => {
+            try {
+                const data = await api.updateCartItem(cartItemId, { quantity });
+                if (data && data.items) {
+                    setItems(prev => preserveOrder(prev, data.items));
+                    setSummary(data.summary);
+                } else {
+                    await fetchCart(mallId, true);
+                }
+            } catch (err) {
+                await fetchCart(mallId, true);
+            } finally {
+                // Defer setting isSyncing to false to ensure React has painted the new values
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => setIsSyncing(false));
+                });
+            }
+        }, 400);
     }, [mallId, fetchCart]);
 
     const removeItem = useCallback(async (cartItemId) => {
+        if (String(cartItemId).startsWith('temp-')) {
+            console.warn('Cannot remove an optimistic item before it syncs.');
+            return;
+        }
+
+        setItems(prev => prev.filter(item => item.cartItemId !== cartItemId));
+
         try {
-            setLoading(true);
-            await api.removeCartItem(cartItemId);
-            await fetchCart(mallId);
+            setIsSyncing(true);
+            const data = await api.removeCartItem(cartItemId);
+            if (data && data.items) {
+                setItems(prev => preserveOrder(prev, data.items));
+                setSummary(data.summary);
+            } else {
+                await fetchCart(mallId, true);
+            }
         } catch (err) {
+            await fetchCart(mallId, true);
             throw err;
         } finally {
-            setLoading(false);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => setIsSyncing(false));
+            });
         }
     }, [mallId, fetchCart]);
 
@@ -96,7 +166,7 @@ export function CartProvider({ children }) {
     return (
         <CartContext.Provider
             value={{
-                items, summary, loading, open, mallId, itemCount,
+                items, summary, loading, open, mallId, itemCount, isSyncing,
                 setOpen, setMallId, addItem, updateItem, removeItem, placeOrder, fetchCart,
             }}
         >

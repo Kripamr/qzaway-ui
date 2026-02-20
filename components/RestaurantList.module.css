@@ -226,6 +226,28 @@
     transition: color 0.2s;
 }
 
+.cardStatusMeta {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+}
+
+.statusDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.statusDot.active {
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success-bg);
+}
+
+.statusDot.inactive {
+    background: var(--danger);
+    box-shadow: 0 0 6px var(--danger-bg);
+}
+
 .card:hover .cardMeta {
     color: var(--accent);
 }
@@ -267,6 +289,27 @@
     font-size: 12px;
     color: var(--text-muted);
     padding-left: 18px;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 0.2s;
+}
+
+.searchRestaurant:hover {
+    text-decoration-color: var(--text-muted);
+}
+
+.searchCardBottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--sp-2);
+    padding-left: 18px;
+}
+
+.addBtn {
+    padding: var(--sp-2) var(--sp-3);
+    min-width: 64px;
+    font-size: 12px;
 }
 
 @media (max-width: 640px) {
