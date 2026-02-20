@@ -140,5 +140,19 @@
 @media (max-width: 480px) {
     .panel {
         width: 100vw;
+        height: 100dvh;
+    }
+
+    .summary {
+        padding: var(--sp-3) var(--sp-5);
+        gap: var(--sp-2);
+    }
+
+    .summaryRow {
+        font-size: 12px;
+    }
+
+    .footer {
+        padding: var(--sp-3) var(--sp-5);
     }
 }

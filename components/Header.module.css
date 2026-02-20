@@ -42,6 +42,27 @@
     color: var(--accent);
 }
 
+.backBtn {
+    display: none;
+    align-items: center;
+    gap: 2px;
+    padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-2);
+    border-radius: var(--r-md);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+    flex-shrink: 0;
+}
+
+.backBtn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-hover);
+}
+
 .breadcrumb {
     display: flex;
     align-items: center;
@@ -140,6 +161,10 @@
 @media (max-width: 768px) {
     .breadcrumb {
         display: none;
+    }
+
+    .backBtn {
+        display: flex;
     }
 
     .actionBtn,

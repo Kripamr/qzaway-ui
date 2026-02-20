@@ -1,14 +1,16 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useOrders } from '@/context/OrdersContext';
 import styles from './Header.module.css';
 
 export default function Header() {
     const pathname = usePathname();
+    const router = useRouter();
     const { itemCount, setOpen: setCartOpen } = useCart();
     const { setOpen: setOrdersOpen, fetchOrders } = useOrders();
+    const isInnerPage = pathname !== '/';
 
     const handleOrders = () => {
         fetchOrders();
@@ -24,6 +26,19 @@ export default function Header() {
                         Qz<span className={styles.accent}>away</span>
                     </span>
                 </Link>
+
+                {isInnerPage && (
+                    <button
+                        className={styles.backBtn}
+                        onClick={() => router.back()}
+                        aria-label="Go back"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                        <span>Back</span>
+                    </button>
+                )}
 
                 {pathname !== '/' && (
                     <nav className={styles.breadcrumb}>
