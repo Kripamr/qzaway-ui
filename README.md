@@ -5,6 +5,14 @@ A premium, dark-themed food ordering frontend for mall food courts. Browse resta
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![CSS Modules](https://img.shields.io/badge/CSS_Modules-✓-blue)
 
+## Demo
+
+### Desktop
+<img src="demo/desktop-demo.webp" width="800" alt="Desktop demo - full ordering flow" />
+
+### Mobile
+<img src="demo/mobile-demo.webp" width="300" alt="Mobile demo - responsive layout" />
+
 ## Features
 
 - 🏬 **Mall Selection** — Choose your mall to see available restaurants
@@ -14,7 +22,7 @@ A premium, dark-themed food ordering frontend for mall food courts. Browse resta
 - 💰 **GST Breakdown** — Food GST (5%), platform fee, platform GST (18%)
 - 📦 **Order Placement** — Place orders and track history
 - 🔄 **Reorder** — Quick reorder from past orders
-- 📱 **Responsive** — Works on desktop and mobile
+- 📱 **Responsive** — Works on desktop and mobile with back navigation
 
 ## Tech Stack
 
