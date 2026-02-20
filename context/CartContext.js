@@ -43,7 +43,6 @@ export function CartProvider({ children }) {
             setLoading(true);
             await api.addToCart({ userId, mallId, menuItemId, quantity });
             await fetchCart(mallId);
-            setOpen(true);
         } catch (err) {
             throw err;
         } finally {

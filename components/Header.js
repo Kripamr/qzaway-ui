@@ -1,18 +1,15 @@
 'use client';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useOrders } from '@/context/OrdersContext';
 import styles from './Header.module.css';
 
 export default function Header() {
-    const pathname = usePathname();
-    const router = useRouter();
     const { itemCount, setOpen: setCartOpen } = useCart();
     const { setOpen: setOrdersOpen, fetchOrders } = useOrders();
-    const isInnerPage = pathname !== '/';
 
     const handleOrders = () => {
+        setCartOpen(false);
         fetchOrders();
         setOrdersOpen(true);
     };
@@ -20,43 +17,12 @@ export default function Header() {
     return (
         <header className={styles.header}>
             <div className={`container ${styles.inner}`}>
-                <Link href="/" className={styles.brand}>
+                <Link href="/" className={styles.brand} onClick={() => { setCartOpen(false); setOrdersOpen(false); }}>
                     <span className={styles.logo}>🍽️</span>
                     <span className={styles.brandText}>
                         Qz<span className={styles.accent}>away</span>
                     </span>
                 </Link>
-
-                {isInnerPage && (
-                    <button
-                        className={styles.backBtn}
-                        onClick={() => router.back()}
-                        aria-label="Go back"
-                    >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="15 18 9 12 15 6" />
-                        </svg>
-                        <span>Back</span>
-                    </button>
-                )}
-
-                {pathname !== '/' && (
-                    <nav className={styles.breadcrumb}>
-                        <Link href="/" className={styles.crumb}>Malls</Link>
-                        {pathname.includes('/mall/') && (
-                            <>
-                                <span className={styles.sep}>›</span>
-                                <span className={styles.crumbActive}>Restaurants</span>
-                            </>
-                        )}
-                        {pathname.includes('/restaurant/') && (
-                            <>
-                                <span className={styles.sep}>›</span>
-                                <span className={styles.crumbActive}>Menu</span>
-                            </>
-                        )}
-                    </nav>
-                )}
 
                 <div className={styles.actions}>
                     <button className={styles.actionBtn} onClick={handleOrders} title="Order History">
@@ -70,7 +36,7 @@ export default function Header() {
                         <span className="hide-mobile">Orders</span>
                     </button>
 
-                    <button className={styles.cartBtn} onClick={() => setCartOpen(true)} title="Your Cart">
+                    <button className={styles.cartBtn} onClick={() => { setOrdersOpen(false); setCartOpen(prev => !prev); }} title="Your Cart">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
                             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />

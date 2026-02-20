@@ -56,6 +56,18 @@ export default function RestaurantList({ mallId }) {
     return (
         <div className={styles.page}>
             <div className={`container ${styles.content}`}>
+                {/* Breadcrumb */}
+                <nav className={styles.breadcrumb}>
+                    <Link href="/" className={styles.crumbLink}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                        Malls
+                    </Link>
+                    <span className={styles.crumbSep}>›</span>
+                    <span className={styles.crumbCurrent}>Restaurants</span>
+                </nav>
+
                 {/* Search Bar */}
                 <div className={styles.searchSection}>
                     <div className={styles.searchBar}>

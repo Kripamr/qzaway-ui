@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { getMenu } from '@/lib/api';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/context/ToastContext';
@@ -53,6 +54,20 @@ export default function MenuPage({ mallId, restaurantId }) {
     return (
         <div className={styles.page}>
             <div className={`container ${styles.content}`}>
+                {/* Breadcrumb */}
+                <nav className={styles.breadcrumb}>
+                    <Link href="/" className={styles.crumbLink}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                        Malls
+                    </Link>
+                    <span className={styles.crumbSep}>›</span>
+                    <Link href={`/mall/${mallId}`} className={styles.crumbLink}>Restaurants</Link>
+                    <span className={styles.crumbSep}>›</span>
+                    <span className={styles.crumbCurrent}>Menu</span>
+                </nav>
+
                 {/* Restaurant Header */}
                 <div className={styles.restaurantHeader}>
                     <div className={styles.headerInfo}>
